@@ -13,6 +13,9 @@ mac:
       arch: arm64
   identity: gil Self-Signed
   hardenedRuntime: false
+  # A self-signed build is not notarized, so Apple's timestamp server adds nothing, and when it
+  # is unreachable the whole build fails.
+  timestamp: none
 artifactName: ${productName}-${version}-${arch}.${ext}
 publish:
   provider: generic

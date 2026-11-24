@@ -11,9 +11,9 @@ import { OverlayManager } from './overlay'
 import { screenPermission } from './permissions'
 import { restartToUpdate, startBackgroundUpdates, updateBeforeLaunch } from './updates'
 import { Recorder } from './recorder'
+import { TrayAnimation } from './trayIcon'
+import { trayStatus, type TrayStatus } from '../shared/dotCloud'
 
-/** gil's logo for now. The app icon is build/icon.png, rendered from the same emoji. */
-const TRAY_LOGO = '✌️'
 const CAPTURE_SHORTCUT = 'CommandOrControl+Shift+2'
 
 registerAssetScheme()
@@ -24,12 +24,13 @@ let tray: Tray | null = null
 function createTray(
   actions: { capture: () => void; library: () => void },
   shortcutOk: boolean,
+  status: () => TrayStatus,
 ): (updateVersion: string | null) => void {
-  // The menu bar shows gil's logo, the ✌️ emoji, as text (an image there would have to be a
-  // one-colour template).
+  // The menu bar shows gil's mark, the Dot cloud, turning; how it moves says what gil is doing
+  // (see shared/dotCloud.ts).
   tray = new Tray(nativeImage.createEmpty())
-  tray.setTitle(TRAY_LOGO)
   tray.setToolTip('gil')
+  new TrayAnimation(tray, status).run()
   // Rebuilt when an update is ready, to offer the restart.
   const setMenu = (updateVersion: string | null) =>
     tray?.setContextMenu(
@@ -126,9 +127,19 @@ function main(): void {
   screen.on('display-metrics-changed', rebuildWhenIdle)
 
   const shortcutOk = globalShortcut.register(CAPTURE_SHORTCUT, () => startCapture())
+  // "Ready" shows for a while after the last queued analysis finishes.
+  let analyzing = false
+  let finishedAt: number | null = null
+  const status = (): TrayStatus => {
+    const now = Date.now()
+    if (analyzing && !analysis.busy) finishedAt = now
+    analyzing = analysis.busy
+    return trayStatus({ capturing: !controller.isIdle, analyzing, finishedAt, now })
+  }
   const setTrayMenu = createTray(
     { capture: () => startCapture(), library: () => library.show() },
     shortcutOk,
+    status,
   )
   startBackgroundUpdates((version) => setTrayMenu(version))
 

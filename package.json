@@ -1,7 +1,7 @@
 {
   "name": "gil",
   "productName": "gil",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "Capture anything on screen as a named, reusable design reference.",
   "license": "AGPL-3.0-only",

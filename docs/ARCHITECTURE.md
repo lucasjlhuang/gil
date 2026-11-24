@@ -17,6 +17,8 @@ This describes the intended design. Details marked **verify** are assumptions ab
 
 The app lives in the menu bar and keeps running with the library window closed, so the shortcut always works. While the main window is open it is a regular app, so it shows in Cmd+Tab; macOS only lists regular apps there, and they always have a Dock icon, so the Dock icon shows during that time too. When the window closes it goes back to menu bar only (`main/appSwitcher.ts`). Overlays and the hidden recorder never change this.
 
+gil's mark is the Dot cloud (2026-11-24, from the menu bar icon mockups): a turning ball of points whose flares are stray points flying out. Its drawing and the status mapping live in `shared/dotCloud.ts`. The menu bar icon turns once every 18 s at 12 frames a second and shows what gil is doing: idle is a quiet ball, capturing (selecting through saving) adds a ring, analyzing makes the flares pop in and out, and ready (10 s after the last queued analysis finishes) holds the flares out. Main has no canvas, so a hidden, sandboxed window with no preload draws each frame at 1x and 2x (`main/trayIcon.ts`); frames are template images (macOS colours them for a light or dark menu bar) and are kept once drawn. The app icon `build/icon.png` is drawn from the same code by `pnpm exec electron scripts/make-icon.mjs`: light points on a dark rounded square, flares out, the mark about 630 px across so it has the same breathing room as Burr's and Peri's icons.
+
 Suggested layout:
 
 ```

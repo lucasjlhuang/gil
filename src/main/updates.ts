@@ -106,7 +106,7 @@ h1 { margin: 0; font-size: 15px; font-weight: 600; }
 .fill { height: 100%; width: 0; border-radius: 3px; background: #0a6cff; transition: width .2s; }
 .note { color: color-mix(in srgb, CanvasText 60%, transparent); font-variant-numeric: tabular-nums; }
 </style></head><body>
-<h1>✌️ Updating gil to ${version}</h1>
+<h1>Updating gil to ${version}</h1>
 <div class="bar"><div class="fill" id="fill"></div></div>
 <div class="note" id="note">Downloading…</div>
 <script>window.setProgress=function(p,label){document.getElementById('fill').style.width=p+'%';document.getElementById('note').textContent=label||('Downloading… '+Math.round(p)+'%')}</script>

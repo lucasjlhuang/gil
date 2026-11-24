@@ -36,6 +36,11 @@ export class AnalysisQueue {
     void this.next()
   }
 
+  /** True while an analysis is running or waiting. */
+  get busy(): boolean {
+    return this.running !== null || this.pending.length > 0
+  }
+
   isQueued(id: string): boolean {
     return this.running?.id === id || this.pending.some((job) => job.id === id)
   }

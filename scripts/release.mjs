@@ -43,7 +43,11 @@ run('codesign', ['--verify', '--deep', '--strict', app])
 // Nor in what was actually built: the app's code is scanned as it will ship, before any upload.
 const unpacked = mkdtempSync(join(tmpdir(), 'gil-release-scan-'))
 try {
-  run('node', [`${root}node_modules/@electron/asar/bin/asar.js`, 'extract', `${app}/Contents/Resources/app.asar`, join(unpacked, 'app')])
+  // @electron/asar comes with electron-builder; pnpm keeps it in its own store folder.
+  const store = `${root}node_modules/.pnpm`
+  const asarDir = readdirSync(store).filter((name) => name.startsWith('@electron+asar@')).sort().pop()
+  if (!asarDir) fail('Could not find @electron/asar to check the built app.')
+  run('node', [`${store}/${asarDir}/node_modules/@electron/asar/bin/asar.js`, 'extract', `${app}/Contents/Resources/app.asar`, join(unpacked, 'app')])
   run('node', ['scripts/scan-private.mjs', join(unpacked, 'app'), `${app}/Contents/Info.plist`, `${root}dist/latest-mac.yml`])
 } finally {
   rmSync(unpacked, { recursive: true, force: true })
@@ -66,10 +70,13 @@ const put = (key, file, contentType) =>
     ...(contentType ? ['--content-type', contentType] : []),
   ])
 
-for (const file of files) put(file, file)
+// `--updates-only` uploads just what installed copies update from (the zip and its blockmap),
+// leaving out the disk image for first installs, which is the same size again, uploaded twice.
+const updatesOnly = process.argv.includes('--updates-only')
+for (const file of files) if (!updatesOnly || !file.includes('.dmg')) put(file, file)
 // A stable link for first installs and the website.
 const dmg = files.find((file) => file.endsWith('.dmg'))
-if (dmg) put('gil.dmg', dmg, 'application/x-apple-diskimage')
+if (dmg && !updatesOnly) put('gil.dmg', dmg, 'application/x-apple-diskimage')
 // Last: this file is what tells installed copies a new version exists.
 put('latest-mac.yml', 'latest-mac.yml', 'text/yaml')
 
