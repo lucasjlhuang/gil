@@ -52,11 +52,16 @@ const skip = (path) =>
   /\.(png|jpe?g|gif|webp|icns|ico|mp4|mov|webm|woff2?|ttf|otf|zip|dmg|pdf|node|dylib|so|wasm|ttc)$/i.test(path) ||
   path.endsWith('scripts/scan-private.mjs') ||
   path.endsWith('.private-patterns') ||
+  // The owner's working notes with Claude: kept in the private repository, never copied to the
+  // public one (scripts/sync-public.mjs) and never built into the app.
+  /^(HANDOFF|CLAUDE|KICKOFF_PROMPT|LAUNCH|AGENTS)\.md$/.test(path) ||
   path.endsWith('pnpm-lock.yaml')
 
 function walk(dir, out) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name)
+    // Git's own records and installed packages are not part of what is published.
+    if (entry.isDirectory() && (entry.name === '.git' || entry.name === 'node_modules') && !path.includes('app.asar')) continue
     if (entry.isDirectory()) walk(path, out)
     else out.push(path)
   }
