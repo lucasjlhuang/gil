@@ -1,0 +1,6 @@
+allowBuilds:
+  electron: true
+  esbuild: true
+  ffmpeg-static: true
+  # Windows installer helper pulled in by electron-builder; gil does not build for Windows.
+  electron-winstaller: false

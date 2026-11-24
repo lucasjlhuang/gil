@@ -1,0 +1,31 @@
+# Packages gil as a Mac app for use on this machine: `pnpm package` writes dist/mac-arm64/gil.app.
+# The bundle identifier; matches the domain thegil.app.
+appId: app.thegil.gil
+productName: gil
+directories:
+  output: dist
+files:
+  - out/**/*
+  - "!out/extension/**"
+  # The benchmark is a developer tool; it never ships.
+  - "!out/main/bench.js"
+  # Source maps of third-party packages add size and nothing a user needs.
+  - "!**/*.map"
+  - package.json
+# The Chrome extension stays a plain folder, so it can be loaded unpacked in Chrome.
+extraResources:
+  - from: out/extension
+    to: extension
+# ffmpeg is an executable and cannot run from inside the asar archive (see src/main/ffmpeg.ts).
+asarUnpack:
+  - "**/node_modules/ffmpeg-static/**"
+mac:
+  target: dir
+  category: public.app-category.graphics-design
+  # Ad-hoc signature: no Apple developer certificate needed to run it on this Mac. Hardened
+  # runtime is off because it would reject Electron's frameworks under an ad-hoc signature.
+  identity: "-"
+  hardenedRuntime: false
+  extendInfo:
+    # A menu bar app: no Dock icon from the moment it launches.
+    LSUIElement: true

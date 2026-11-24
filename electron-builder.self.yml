@@ -1,0 +1,20 @@
+# Self-signed release build with automatic updates, until gil has an Apple Developer ID
+# (docs/ARCHITECTURE.md, Publishing). Every build is signed with the same local certificate,
+# "gil Self-Signed", which is what lets macOS accept an update as the same app and keep its
+# privacy permissions. Not notarized: the first install needs right-click → Open.
+# Used by `pnpm release` (scripts/release.mjs), which uploads the result to Cloudflare R2.
+extends: electron-builder.yml
+mac:
+  target:
+    # The zip is what electron-updater downloads; the dmg is for first installs.
+    - target: dmg
+      arch: arm64
+    - target: zip
+      arch: arm64
+  identity: gil Self-Signed
+  hardenedRuntime: false
+artifactName: ${productName}-${version}-${arch}.${ext}
+publish:
+  provider: generic
+  # Set by scripts/release.mjs from release.json, so the address lives in one place.
+  url: ${env.GIL_UPDATE_URL}

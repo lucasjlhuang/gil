@@ -1,0 +1,43 @@
+# Builds, signs with the Apple Developer ID, notarizes and publishes a gil release.
+# For later: until gil has a Developer ID, releases are self-signed and published from the
+# Mac with `pnpm release` (scripts/release.mjs), which also pushes version tags, so this only
+# runs when started by hand. See docs/ARCHITECTURE.md, Publishing.
+name: Release (Developer ID)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - name: Check signing secrets
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -z "$CSC_LINK" ] || [ -z "$APPLE_ID" ] || [ -z "$RELEASES_TOKEN" ]; then
+            echo "Signing or publishing secrets are not set up yet; nothing to release."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.11.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck && pnpm lint && pnpm test
+      - run: pnpm build
+      - name: Package, sign, notarize and publish
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: pnpm exec electron-builder --mac --config electron-builder.release.yml --publish always

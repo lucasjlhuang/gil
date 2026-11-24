@@ -1,0 +1,17 @@
+# Refuses secrets and home-folder paths on every push and pull request (scripts/scan-private.mjs).
+# The developer's personal patterns live only on their Mac, so CI checks the generic ones.
+name: Scan for secrets
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/scan-private.mjs --tracked

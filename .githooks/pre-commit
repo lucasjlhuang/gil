@@ -1,0 +1,4 @@
+#!/bin/sh
+# Refuses a commit that contains a secret or a personal detail (see scripts/scan-private.mjs).
+# Turned on per clone with: git config core.hooksPath .githooks
+exec node "$(git rev-parse --show-toplevel)/scripts/scan-private.mjs" --staged

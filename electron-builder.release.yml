@@ -1,0 +1,25 @@
+# Signed, notarized release build with automatic updates. Used only by the release workflow
+# (.github/workflows/release.yml); `pnpm package` keeps the local ad-hoc build in
+# electron-builder.yml. Needs the Developer ID certificate and Apple credentials in the
+# environment (CSC_LINK, CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID).
+extends: electron-builder.yml
+mac:
+  target:
+    # The zip is what electron-updater downloads; the dmg is for first installs.
+    - target: dmg
+      arch: arm64
+    - target: zip
+      arch: arm64
+  identity: null # cleared so the Developer ID from CSC_LINK is used
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: true
+# Where update files are published. PENDING the user's choice (public releases repo or a
+# storage bucket); the workflow refuses to publish until this is decided and RELEASES_TOKEN set.
+publish:
+  provider: github
+  # Set to the GitHub account and repository that will host releases when this is used.
+  owner: OWNER
+  repo: RELEASES_REPO
+  releaseType: release
